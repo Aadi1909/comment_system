@@ -7,11 +7,11 @@ import com.example.springsecurity.dto.RegisterRequest;
 import com.example.springsecurity.repository.RoleRepository;
 import com.example.springsecurity.service.AuthService;
 import com.example.springsecurity.service.JwtUtils;
-import com.example.springsecurity.service.UserDetailsServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -42,6 +42,7 @@ public class AuthController {
                         )
                 );
 
+        SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtUtils.generateToken(authentication.getName());
 
         return new LoginResponse(token);

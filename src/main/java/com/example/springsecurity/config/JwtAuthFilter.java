@@ -50,8 +50,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         username = jwtUtils.getUsernameFromToken(token);
-
-        // Avoid re-authentication
+        
         if (username != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -68,6 +67,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             authentication.setDetails(
                     new WebAuthenticationDetailsSource().buildDetails(request)
             );
+
+
 
             SecurityContextHolder.getContext()
                     .setAuthentication(authentication);

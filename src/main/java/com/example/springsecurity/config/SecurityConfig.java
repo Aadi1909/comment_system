@@ -1,6 +1,8 @@
 package com.example.springsecurity.config;
 
 
+import com.example.springsecurity.security.CustomAccessDeniedHandler;
+import com.example.springsecurity.security.JwtAuthEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,10 +31,20 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthFilter  jwtAuthFilter;
 
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    @Autowired
+    private JwtAuthEntryPoint jwtAuthEntryPoint;
+
+
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler))
                 .headers(headers ->
                         headers.frameOptions(frame -> frame.sameOrigin())
                 )
