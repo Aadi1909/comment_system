@@ -2,6 +2,7 @@ package com.example.springsecurity.service;
 
 import com.example.springsecurity.constant.Role;
 import com.example.springsecurity.dto.RegisterRequest;
+import com.example.springsecurity.dto.RegisterResponse;
 import com.example.springsecurity.entity.RoleEntity;
 import com.example.springsecurity.entity.UserEntity;
 import com.example.springsecurity.repository.RoleRepository;
@@ -24,7 +25,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void register(RegisterRequest request) {
+    public RegisterResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
@@ -34,6 +35,7 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEnabled(true);
+        user.setUsername(request.getUsername());
 
         for (Role role : request.getRoles()) {
             RoleEntity roleEntity = roleRepository
@@ -48,6 +50,11 @@ public class AuthService {
         }
 
         userRepository.save(user);
+        RegisterResponse response = new RegisterResponse();
+        response.setUsername(request.getUsername());
+        response.setEmail(request.getEmail());
+        response.setPassword(request.getPassword());
+        return response;
     }
 }
 

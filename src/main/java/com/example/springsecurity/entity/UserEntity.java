@@ -3,7 +3,9 @@ package com.example.springsecurity.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -16,6 +18,8 @@ public class UserEntity {
     private Long id;
 
     private String email;
+
+    private String username;
 
     private String password;
 

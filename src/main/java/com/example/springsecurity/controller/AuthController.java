@@ -4,10 +4,12 @@ package com.example.springsecurity.controller;
 import com.example.springsecurity.dto.LoginRequest;
 import com.example.springsecurity.dto.LoginResponse;
 import com.example.springsecurity.dto.RegisterRequest;
+import com.example.springsecurity.dto.RegisterResponse;
 import com.example.springsecurity.repository.RoleRepository;
 import com.example.springsecurity.service.AuthService;
 import com.example.springsecurity.service.JwtUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -50,11 +52,8 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public void register(@RequestBody RegisterRequest request) {
-        System.out.println(request.getEmail());
-        System.out.println(request.getPassword());
-        System.out.println("Roles in DB: " + roleRepository.findAll());
-        authService.register(request);
+    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.register(request));
     }
 }
 

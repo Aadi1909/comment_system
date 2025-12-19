@@ -49,7 +49,7 @@ public class SecurityConfig {
                         headers.frameOptions(frame -> frame.sameOrigin())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/free", "/auth/register", "/auth/login" ,"/h2-console").permitAll()
+                        .requestMatchers("/free", "/auth/register", "/auth/login", "/comment").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
