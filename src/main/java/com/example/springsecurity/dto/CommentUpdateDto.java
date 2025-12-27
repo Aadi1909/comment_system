@@ -7,10 +7,9 @@ import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter @Getter
-public class CommentCreatedResponse {
+@Getter @Setter
+public class CommentUpdateDto {
     
-    private Long commentId;
-    private String message;
+    private String content;
 
 }

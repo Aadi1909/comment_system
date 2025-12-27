@@ -1,19 +1,18 @@
 package com.example.springsecurity.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-@AllArgsConstructor
-@Data
 @Builder
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CommentResponse {
     private Long commentId;
     private String content;
-    private LocalDateTime createdAt;
     private String authorName;
+    private LocalDateTime createdAt;
+    private List<CommentResponse> replies;
 }

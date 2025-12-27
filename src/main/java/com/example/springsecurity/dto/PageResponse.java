@@ -1,13 +1,14 @@
 package com.example.springsecurity.dto;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 @AllArgsConstructor
-@Getter
+@Data
+@NoArgsConstructor
 public class PageResponse<T> {
     private List<T> content;
     private int page;
@@ -15,4 +16,15 @@ public class PageResponse<T> {
     private long totalElements;
     private int totalPages;
     private boolean last;
+
+    public static <T> PageResponse<T> fromPage(Page<T> page) {
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isLast()
+        );
+    }
 }

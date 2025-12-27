@@ -1,20 +1,24 @@
 package com.example.springsecurity.service;
 
-
 import com.example.springsecurity.dto.CommentDTO;
+import com.example.springsecurity.dto.CommentReplyDTO;
+import com.example.springsecurity.dto.CommentReplyResponse;
 import com.example.springsecurity.dto.CommentResponse;
+import com.example.springsecurity.dto.CommentUpdateDto;
+import com.example.springsecurity.dto.CommentUpdateResponse;
+import com.example.springsecurity.dto.PageResponse;
 import com.example.springsecurity.entity.CommentEntity;
 import com.example.springsecurity.dto.CommentCreatedResponse;
 import com.example.springsecurity.entity.UserEntity;
 import com.example.springsecurity.repository.CommentRepository;
 import com.example.springsecurity.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
@@ -25,59 +29,104 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
 
-    public CommentCreatedResponse saveComment(CommentDTO commentDTO) {
+    @CacheEvict(value = { "comments", "myComments" }, allEntries = true)
+    public CommentCreatedResponse saveComment(CommentDTO dto, Long userId) {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        UserDetailsImpl userDetails =
-                (UserDetailsImpl) authentication.getPrincipal();
-
-        UserEntity userEntity = userRepository.findById(userDetails.getId())
+        UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        CommentEntity commentEntity = new CommentEntity();
-        commentEntity.setContent(commentDTO.getContent());
-        commentEntity.setUser(userEntity);
-        commentEntity.setCreatedAt(LocalDateTime.now());
+        CommentEntity comment = CommentEntity.builder()
+                .content(dto.getContent())
+                .user(user)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        commentRepository.save(commentEntity);
+        CommentEntity commentSaved = commentRepository.save(comment);
+        CommentCreatedResponse commentCreatedResponse = new CommentCreatedResponse();
+        commentCreatedResponse.setCommentId(comment.getId());
+        commentCreatedResponse.setMessage("Comment Saved Successfully");
 
-        return new CommentCreatedResponse("Comment saved successfully");
+        return commentCreatedResponse;
     }
 
-    public Page<CommentResponse> getCommentByUserWithLimit(int page, int size) {
+    @CacheEvict(value = { "comments", "myComments" }, allEntries = true)
+    public CommentReplyResponse saveReply(CommentReplyDTO dto, Long userId, Long parentId) {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        UserDetailsImpl userDetails =
-                (UserDetailsImpl) authentication.getPrincipal();
+        CommentEntity parent = commentRepository.findById(parentId)
+                .orElseThrow(() -> new RuntimeException("Parent comment not found"));
 
-        Pageable pageable =
-                PageRequest.of(page, size, Sort.by("createdAt").descending());
+        CommentEntity reply = CommentEntity.builder()
+                .content(dto.getContent())
+                .user(user)
+                .parentComment(parent)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        return commentRepository
-                .findByUserId(userDetails.getId(), pageable)
-                .map(comment -> new CommentResponse(
-                        comment.getId(),
-                        comment.getContent(),
-                        comment.getCreatedAt(),
-                        comment.getUser().getUsername()
-                ));
+        commentRepository.save(reply);
+
+        return new CommentReplyResponse(
+                reply.getId(),
+                parentId,
+                reply.getContent(),
+                user.getUsername(),
+                reply.getCreatedAt()
+        );
     }
 
-    public Page<CommentResponse> getAllCommentOnAPage(int page, int size) {
-        Pageable pageable =
-                PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return commentRepository
-                .findAll(pageable)
-                .map(entity -> CommentResponse.builder()
-                        .commentId(entity.getId())
-                        .content(entity.getContent())
-                        .createdAt(entity.getCreatedAt())
-                        .authorName(entity.getUser().getUsername())
-                        .build()
-                );
+    @Cacheable(value = "myComments", key = "#userId + ':' + #page + ':' + #size")
+    public PageResponse<CommentResponse> getMyComments(int page, int size, Long userId) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<CommentEntity> pageResult = commentRepository.findByUserId(userId, pageable);
+
+        return PageResponse.fromPage(pageResult.map(this::mapWithReplies));
     }
+
+    @Cacheable(value = "comments", key = "#page + ':' + #size")
+    public PageResponse<CommentResponse> getAllRootComments(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<CommentEntity> pageResult =
+                commentRepository.findByParentCommentIsNull(pageable);
+
+        return PageResponse.fromPage(pageResult.map(this::mapWithReplies));
+    }
+
+    private CommentResponse mapWithReplies(CommentEntity entity) {
+        return CommentResponse.builder()
+                .commentId(entity.getId())
+                .content(entity.getContent())
+                .authorName(entity.getUser().getUsername())
+                .createdAt(entity.getCreatedAt())
+                .replies(
+                        entity.getReplies()
+                                .stream()
+                                .map(this::mapWithReplies)
+                                .toList()
+                )
+                .build();
+    }
+
+        @CacheEvict(value = { "comments", "myComments" }, allEntries = true)
+        public CommentUpdateResponse updateComment(CommentUpdateDto commentUpdateDto, UserDetailsImpl currentUser, Long updateId) {
+
+                CommentEntity commentEntity = commentRepository.findById(updateId)
+                                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+                if (!commentEntity.getUser().getId().equals(currentUser.getId())) {
+                        throw new RuntimeException("You can only update your own comments");
+                }
+
+                commentEntity.setContent(commentUpdateDto.getContent());
+                commentEntity.setUpdatedAt(LocalDateTime.now());
+                commentRepository.save(commentEntity);
+
+                CommentUpdateResponse response = new CommentUpdateResponse();
+                response.setUpdatedCommentContent(commentUpdateDto.getContent());
+                return response;
+        }
 }
+

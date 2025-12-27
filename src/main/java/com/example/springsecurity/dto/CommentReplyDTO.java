@@ -5,12 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Setter @Getter
-public class CommentCreatedResponse {
-    
-    private Long commentId;
-    private String message;
-
+@AllArgsConstructor
+public class CommentReplyDTO {
+    private String content;
 }
