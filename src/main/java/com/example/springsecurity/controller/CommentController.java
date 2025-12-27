@@ -65,7 +65,6 @@ public class CommentController {
         @RequestParam Long updateId,
         @RequestBody CommentUpdateDto CommentUpdateDto
     ) {
-
         return ResponseEntity.ok(
             commentService.updateComment(CommentUpdateDto, (UserDetailsImpl) authentication.getPrincipal(), updateId)
         );
