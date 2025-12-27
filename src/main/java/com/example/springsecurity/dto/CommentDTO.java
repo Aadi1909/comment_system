@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 public class CommentDTO {
 
+
     @NotBlank(message = "Comment content cannot be empty")
     private String content;
 

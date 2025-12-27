@@ -6,6 +6,7 @@ import com.example.springsecurity.security.JwtAuthEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -49,7 +50,8 @@ public class SecurityConfig {
                         headers.frameOptions(frame -> frame.sameOrigin())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/free", "/auth/register", "/auth/login", "/comment").permitAll()
+                        .requestMatchers("/free", "/auth/register", "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/comment").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
