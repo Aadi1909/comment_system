@@ -50,7 +50,7 @@ public class SecurityConfig {
                         headers.frameOptions(frame -> frame.sameOrigin())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/free", "/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/comment").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
