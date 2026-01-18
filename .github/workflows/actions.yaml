@@ -2,11 +2,9 @@ name: CI-CD Comment System
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   build-and-deploy:
@@ -17,7 +15,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: commentdb
+          MYSQL_DATABASE: comments_db
         ports:
           - 3306:3306
         options: >-
@@ -44,19 +42,24 @@ jobs:
       - name: Grant Gradle permission
         run: chmod +x gradlew
 
+      - name: Wait for MySQL to be ready
+        run: |
+          until mysqladmin ping -h 127.0.0.1 -u root -proot --silent; do
+            sleep 2
+          done
+
       - name: Run tests
         run: ./gradlew test
         env:
-          # These must match the ${VAR_NAME} placeholders in your application.properties
           DB_HOST: localhost
           DB_PORT: 3306
-          DB_NAME: commentdb
+          DB_NAME: comments_db
           DB_USER: root
           DB_PASSWORD: root
           REDIS_HOST: localhost
           REDIS_PORT: 6379
 
-      - name: Build JAR
+      - name: Build JAR (skip tests)
         run: ./gradlew build -x test
 
       - name: Login to Docker Hub
