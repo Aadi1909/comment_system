@@ -47,10 +47,14 @@ jobs:
       - name: Run tests
         run: ./gradlew test
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/commentdb
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: root
-          SPRING_REDIS_HOST: localhost
+          # These must match the ${VAR_NAME} placeholders in your application.properties
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_NAME: commentdb
+          DB_USER: root
+          DB_PASSWORD: root
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
 
       - name: Build JAR
         run: ./gradlew build -x test
