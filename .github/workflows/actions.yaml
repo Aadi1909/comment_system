@@ -76,12 +76,13 @@ jobs:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
-            cd /home/ubuntu/comment_system
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/comment_system-app:latest
-            docker compose down
-            docker compose up -d
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USER }}
+            key: ${{ secrets.EC2_SSH_KEY }}
+            port: 22
+            script: |
+                cd /home/ubuntu/comment_system
+                docker pull ${{ secrets.DOCKERHUB_USERNAME }}/comment_system-app:latest
+                docker-compose down
+                docker-compose up -d
+
