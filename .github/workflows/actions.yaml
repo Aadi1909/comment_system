@@ -1,4 +1,4 @@
-name: CI-CD Comment System
+name: CI-CD Comments System
 
 on:
   push:
